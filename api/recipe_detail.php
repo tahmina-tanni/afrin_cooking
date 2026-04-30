@@ -14,14 +14,12 @@ if ($id <= 0) {
 $conn = connectDB();
 
 // Get recipe details with joins to get category and author names
-$query = "SELECT r.*, c.name as category, u.name as author, 
+$query = "SELECT r.*, c.name as category,
           (SELECT COUNT(*) FROM reviews WHERE recipe_id = r.id) as reviews,
           (SELECT AVG(rating) FROM reviews WHERE recipe_id = r.id) as rating
           FROM recipes r
           JOIN categories c ON r.category_id = c.id
-          JOIN users u ON r.user_id = u.id
           WHERE r.id = ?";
-
 $stmt = $conn->prepare($query);
 $stmt->bind_param("i", $id);
 $stmt->execute();

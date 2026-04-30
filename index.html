@@ -14,7 +14,7 @@
         <div class="container mx-auto px-4">
             <div class="flex justify-between items-center py-4">
                 <div class="flex items-center space-x-2">
-                    <img src="./images/icon.png.jpeg" class="h-6 w-6 inline-block">
+                    <img src="./uploads/recipes/icon.png.jpeg" class="h-6 w-6 inline-block">
                     <a href="#" class="text-2xl font-bold tracking-tight">Afrin's Cooking</a>
                 </div>
                 <div class="hidden md:flex space-x-8">
@@ -278,7 +278,7 @@
                 <h3 class="text-2xl font-bold text-gray-800">Share Your Recipe</h3>
                 <p class="text-gray-600">Fill out the form below to share your culinary creation</p>
             </div>
-            <form id="recipe-form">
+            <form enctype="multipart/form-data"></form>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
                         <label class="block text-gray-700 text-sm font-semibold mb-2" for="recipe-title">Recipe Title</label>
@@ -337,7 +337,7 @@
                     <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center" id="image-drop-area">
                         <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
                         <p class="text-gray-600">Drag & drop an image or click to browse</p>
-                        <input type="file" id="recipe-image" class="hidden" accept="image/*">
+                        <input type="file" id="recipe-image" name="image" class="hidden" accept="image/*">
                         <button type="button" id="browse-btn" class="mt-2 text-green-600 hover:text-green-700">Browse Files</button>
                     </div>
                 </div>
