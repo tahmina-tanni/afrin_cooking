@@ -283,7 +283,7 @@ This project is open source and available under the [MIT License](LICENSE).
 ## Support
 
 For issues, questions, or suggestions:
-- Email: anshtechnical@gmail.com
+- Email: tahminatanni855@gmail.com
 - Create an issue in the repository
 
 ## Credits
