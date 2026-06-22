@@ -1,0 +1,24 @@
+{
+  "name": "afrin_cooking",
+  "version": "1.0.0",
+  "description": "Afrin's Cooking is a modern, responsive web application...",
+  "main": "app.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tahmina-tanni/afrin_cooking.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/tahmina-tanni/afrin_cooking/issues"
+  },
+  "homepage": "https://github.com/tahmina-tanni/afrin_cooking#readme",
+  "dependencies": {
+    "jest": "^30.4.2"
+  }
+}
