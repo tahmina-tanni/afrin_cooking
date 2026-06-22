@@ -1,6 +1,6 @@
 // tests/login.test.js
 
-const { loginUser } = require('../app.js');
+const { loginUser } = require('../api.js');
 
 describe('LoginTest', () => {
 

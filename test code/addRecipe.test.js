@@ -1,6 +1,6 @@
 // tests/addRecipe.test.js
 
-const { addRecipe } = require('../app.js');
+const { addRecipe } = require('../api.js');
 
 describe('AddRecipeTest', () => {
 

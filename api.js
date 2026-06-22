@@ -90,11 +90,49 @@ async function addRecipe(name, category, description, ingredients, steps) {
     return await response.json();
 }
 
+// LOGIN USER FUNCTION
+
+async function loginUser(email, password) {
+
+    const response = await fetch("http://localhost/afrin_cooking/api/auth.php", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            action: "login",
+            email,
+            password
+        })
+    });
+
+    return await response.json();
+}
+
+
+// DELETE RECIPE FUNCTION
+
+async function deleteRecipeById(recipeId) {
+
+    const response = await fetch("http://localhost/afrin_cooking/api/delete_recipe.php", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            recipe_id: recipeId
+        })
+    });
+
+    return await response.json();
+}
 
 // =========================
 // EXPORT FUNCTIONS
 // =========================
 module.exports = {
     registerUser,
-    addRecipe
+    addRecipe,
+    loginUser,
+    deleteRecipeById
 };

@@ -1,6 +1,6 @@
 // tests/deleteRecipe.test.js
 
-const { deleteRecipeById } = require('../app.js');
+const { deleteRecipeById } = require('../api.js');
 
 describe('DeleteRecipeTest', () => {
 
