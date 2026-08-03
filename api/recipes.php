@@ -1,6 +1,7 @@
 <?php
-require_once '../config/database.php';
+require_once '../config/Database.php';
 require_once '../utils/functions.php';
+require_once '../utils/ResponseFactory.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -13,18 +14,18 @@ switch ($method) {
         if (isLoggedIn()) {
             addRecipe();
         } else {
-            echo json_encode(['success' => false, 'message' => 'Please login to submit a recipe']);
+            ResponseFactory::error('Please login to submit a recipe', 401);
         }
         break;
 
     default:
-        echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+        ResponseFactory::error('Method not allowed', 405);
 }
 
 
 // ================= GET RECIPES =================
 function getRecipes() {
-    $conn = connectDB();
+    $conn = Database::getInstance();
 
     $featured = isset($_GET['featured']) ? (int)$_GET['featured'] : 0;
     $popular = isset($_GET['popular']) ? (int)$_GET['popular'] : 0;
@@ -74,18 +75,15 @@ function getRecipes() {
         }
     }
 
-    echo json_encode([
-        'success' => true,
-        'recipes' => $recipes
-    ]);
-
     $conn->close();
+
+    ResponseFactory::success(['recipes' => $recipes]);
 }
 
 
 // ================= ADD RECIPE =================
 function addRecipe() {
-    $conn = connectDB();
+    $conn = Database::getInstance();
 
     $title = isset($_POST['title']) ? sanitizeInput($_POST['title']) : '';
     $category_id = isset($_POST['category']) ? (int)$_POST['category'] : 0;
@@ -95,11 +93,7 @@ function addRecipe() {
     $user_id = $_SESSION['user_id'];
 
     if (empty($title) || empty($category_id) || empty($ingredients) || empty($steps)) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'Title, category, ingredients and steps are required'
-        ]);
-        return;
+        ResponseFactory::error('Title, category, ingredients and steps are required');
     }
 
     // ================= IMAGE UPLOAD =================
@@ -120,8 +114,7 @@ function addRecipe() {
         if (move_uploaded_file($_FILES['image']['tmp_name'], $target_file)) {
             $image_path = 'uploads/recipes/' . $file_name;
         } else {
-            echo json_encode(['success' => false, 'message' => 'Image upload failed']);
-            return;
+            ResponseFactory::error('Image upload failed');
         }
     }
 
@@ -131,12 +124,14 @@ function addRecipe() {
     $stmt->bind_param("sssssiis", $title, $description, $ingredients, $steps, $image_path, $user_id, $category_id, $featured);
 
     if ($stmt->execute()) {
-        echo json_encode(['success' => true, 'message' => 'Recipe added successfully']);
+        $stmt->close();
+        $conn->close();
+        ResponseFactory::success(['message' => 'Recipe added successfully']);
     } else {
-        echo json_encode(['success' => false, 'message' => $conn->error]);
+        $error_msg = $conn->error;
+        $stmt->close();
+        $conn->close();
+        ResponseFactory::error($error_msg);
     }
-
-    $stmt->close();
-    $conn->close();
 }
 ?>

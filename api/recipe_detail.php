@@ -1,17 +1,17 @@
 <?php
 // api/recipe_detail.php - Single recipe details API
-require_once '../config/database.php';
+require_once '../config/Database.php';
 require_once '../utils/functions.php';
+require_once '../utils/ResponseFactory.php';
 
 // Get recipe ID
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
 if ($id <= 0) {
-    echo json_encode(['success' => false, 'message' => 'Invalid recipe ID']);
-    exit;
+    ResponseFactory::error('Invalid recipe ID');
 }
 
-$conn = connectDB();
+$conn = Database::getInstance();
 
 // Get recipe details with joins to get category and author names
 $query = "SELECT r.*, c.name as category,
@@ -35,11 +35,12 @@ if ($result && $result->num_rows > 0) {
         $recipe['rating'] = 0;
     }
     
-    echo json_encode(['success' => true, 'recipe' => $recipe]);
+    $stmt->close();
+    $conn->close();
+    ResponseFactory::success(['recipe' => $recipe]);
 } else {
-    echo json_encode(['success' => false, 'message' => 'Recipe not found']);
+    $stmt->close();
+    $conn->close();
+    ResponseFactory::error('Recipe not found', 404);
 }
-
-$stmt->close();
-$conn->close();
 ?>

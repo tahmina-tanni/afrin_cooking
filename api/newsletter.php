@@ -1,8 +1,9 @@
 <?php
 // api/newsletter.php - Newsletter subscription API
-require_once '../config/database.php';
+require_once '../config/Database.php';
+require_once '../utils/ResponseFactory.php';
 
-$conn = connectDB();
+$conn = Database::getInstance();
 
 // Get POST data
 $postData = json_decode(file_get_contents('php://input'), true);
@@ -10,8 +11,7 @@ $email = isset($postData['email']) ? $postData['email'] : '';
 
 // Validate email
 if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    echo json_encode(['success' => false, 'message' => 'Please provide a valid email address']);
-    exit;
+    ResponseFactory::error('Please provide a valid email address');
 }
 
 // Insert into database
@@ -19,11 +19,13 @@ $stmt = $conn->prepare("INSERT INTO newsletter (email) VALUES (?) ON DUPLICATE K
 $stmt->bind_param("s", $email);
 
 if ($stmt->execute()) {
-    echo json_encode(['success' => true, 'message' => 'Successfully subscribed to newsletter']);
+    $stmt->close();
+    $conn->close();
+    ResponseFactory::success(['message' => 'Successfully subscribed to newsletter']);
 } else {
-    echo json_encode(['success' => false, 'message' => 'Failed to subscribe: ' . $conn->error]);
+    $error_msg = $conn->error;
+    $stmt->close();
+    $conn->close();
+    ResponseFactory::error('Failed to subscribe: ' . $error_msg);
 }
-
-$stmt->close();
-$conn->close();
 ?>

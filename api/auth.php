@@ -1,6 +1,7 @@
 <?php
 // api/auth.php - User authentication API
-require_once '../config/database.php';
+require_once '../config/Database.php';
+require_once '../utils/ResponseFactory.php';
 session_start();
 
 // Handle API requests
@@ -20,24 +21,23 @@ switch ($action) {
         session_destroy();
         
         // Return success response
-        echo json_encode(['success' => true, 'message' => 'Logout successful']);
+        ResponseFactory::success(['message' => 'Logout successful']);
         break;
 
     default:
-        echo json_encode(['success' => false, 'message' => 'Invalid action']);
+        ResponseFactory::error('Invalid action');
 }
 
 // Login function
 function login() {
-    $conn = connectDB();
+    $conn = Database::getInstance();
     
     $email = isset($_POST['email']) ? $_POST['email'] : '';
     $password = isset($_POST['password']) ? $_POST['password'] : '';
     
     // Validate input
     if (empty($email) || empty($password)) {
-        echo json_encode(['success' => false, 'message' => 'Email and password are required']);
-        return;
+        ResponseFactory::error('Email and password are required');
     }
     
     // Prepare statement
@@ -56,12 +56,12 @@ function login() {
             $_SESSION['user_name'] = $user['name'];
             $_SESSION['user_email'] = $user['email'];
             
-            echo json_encode(['success' => true, 'message' => 'Login successful']);
+            ResponseFactory::success(['message' => 'Login successful']);
         } else {
-            echo json_encode(['success' => false, 'message' => 'Invalid password']);
+            ResponseFactory::error('Invalid password');
         }
     } else {
-        echo json_encode(['success' => false, 'message' => 'User not found']);
+        ResponseFactory::error('User not found');
     }
     
     $stmt->close();
@@ -70,7 +70,7 @@ function login() {
 
 // Register function
 function register() {
-    $conn = connectDB();
+    $conn = Database::getInstance();
     
     $name = isset($_POST['name']) ? $_POST['name'] : '';
     $email = isset($_POST['email']) ? $_POST['email'] : '';
@@ -79,13 +79,11 @@ function register() {
     
     // Validate input
     if (empty($name) || empty($email) || empty($password)) {
-        echo json_encode(['success' => false, 'message' => 'All fields are required']);
-        return;
+        ResponseFactory::error('All fields are required');
     }
     
     if ($password !== $confirm_password) {
-        echo json_encode(['success' => false, 'message' => 'Passwords do not match']);
-        return;
+        ResponseFactory::error('Passwords do not match');
     }
     
     // Check if email already exists
@@ -95,9 +93,8 @@ function register() {
     $result = $stmt->get_result();
     
     if ($result->num_rows > 0) {
-        echo json_encode(['success' => false, 'message' => 'Email already in use']);
         $stmt->close();
-        return;
+        ResponseFactory::error('Email already in use');
     }
     
     // Hash password
@@ -108,13 +105,15 @@ function register() {
     $stmt->bind_param("sss", $name, $email, $hashed_password);
     
     if ($stmt->execute()) {
-        echo json_encode(['success' => true, 'message' => 'Registration successful']);
+        $stmt->close();
+        $conn->close();
+        ResponseFactory::success(['message' => 'Registration successful']);
     } else {
-        echo json_encode(['success' => false, 'message' => 'Registration failed: ' . $conn->error]);
+        $error_msg = $conn->error;
+        $stmt->close();
+        $conn->close();
+        ResponseFactory::error('Registration failed: ' . $error_msg);
     }
-    
-    $stmt->close();
-    $conn->close();
 }
 
 // Logout function
@@ -122,6 +121,6 @@ function logout() {
     // Destroy session
     session_destroy();
     
-    echo json_encode(['success' => true, 'message' => 'Logout successful']);
+    ResponseFactory::success(['message' => 'Logout successful']);
 }
 ?>

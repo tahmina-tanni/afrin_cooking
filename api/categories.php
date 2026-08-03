@@ -1,9 +1,10 @@
 <?php
 // api/categories.php - Categories API
-require_once '../config/database.php';
+require_once '../config/Database.php';
+require_once '../utils/ResponseFactory.php';
 
 // Get all categories
-$conn = connectDB();
+$conn = Database::getInstance();
 
 $query = "SELECT c.id, c.name, c.image, COUNT(r.id) as count 
           FROM categories c 
@@ -20,8 +21,7 @@ if ($result) {
     }
 }
 
-echo json_encode(['success' => true, 'categories' => $categories]);
-
 $conn->close();
-?>
 
+ResponseFactory::success(['categories' => $categories]);
+?>

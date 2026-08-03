@@ -1,18 +1,17 @@
 <?php
 // api/rate_recipe.php - Handle recipe ratings
-require_once '../config/database.php';
+require_once '../config/Database.php';
 require_once '../utils/functions.php';
+require_once '../utils/ResponseFactory.php';
 
 // Only allow POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(['success' => false, 'message' => 'Method not allowed']);
-    exit;
+    ResponseFactory::error('Method not allowed', 405);
 }
 
 // Check if user is logged in
 if (!isLoggedIn()) {
-    echo json_encode(['success' => false, 'message' => 'Please login to rate recipes']);
-    exit;
+    ResponseFactory::error('Please login to rate recipes', 401);
 }
 
 // Get the POST data
@@ -23,11 +22,10 @@ $userId = $_SESSION['user_id'];
 
 // Validate data
 if ($recipeId <= 0 || $rating < 1 || $rating > 5) {
-    echo json_encode(['success' => false, 'message' => 'Invalid recipe ID or rating']);
-    exit;
+    ResponseFactory::error('Invalid recipe ID or rating');
 }
 
-$conn = connectDB();
+$conn = Database::getInstance();
 
 // Check if user has already rated this recipe
 $stmt = $conn->prepare("SELECT id FROM reviews WHERE recipe_id = ? AND user_id = ?");
@@ -51,19 +49,23 @@ if ($result->num_rows > 0) {
         $avgResult = $avgStmt->get_result();
         $avgData = $avgResult->fetch_assoc();
         
-        echo json_encode([
-            'success' => true, 
+        $avgStmt->close();
+        $updateStmt->close();
+        $stmt->close();
+        $conn->close();
+        
+        ResponseFactory::success([
             'message' => 'Rating updated successfully',
             'new_rating' => round($avgData['avg_rating'] * 2) / 2, // Round to nearest 0.5
             'reviews_count' => $avgData['count']
         ]);
-        
-        $avgStmt->close();
     } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to update rating']);
+        $updateStmt->close();
+        $stmt->close();
+        $conn->close();
+        
+        ResponseFactory::error('Failed to update rating');
     }
-    
-    $updateStmt->close();
 } else {
     // Insert new rating
     $insertStmt = $conn->prepare("INSERT INTO reviews (recipe_id, user_id, rating) VALUES (?, ?, ?)");
@@ -77,21 +79,22 @@ if ($result->num_rows > 0) {
         $avgResult = $avgStmt->get_result();
         $avgData = $avgResult->fetch_assoc();
         
-        echo json_encode([
-            'success' => true, 
+        $avgStmt->close();
+        $insertStmt->close();
+        $stmt->close();
+        $conn->close();
+        
+        ResponseFactory::success([
             'message' => 'Rating submitted successfully',
             'new_rating' => round($avgData['avg_rating'] * 2) / 2, // Round to nearest 0.5
             'reviews_count' => $avgData['count']
         ]);
-        
-        $avgStmt->close();
     } else {
-        echo json_encode(['success' => false, 'message' => 'Failed to submit rating']);
+        $insertStmt->close();
+        $stmt->close();
+        $conn->close();
+        
+        ResponseFactory::error('Failed to submit rating');
     }
-    
-    $insertStmt->close();
 }
-
-$stmt->close();
-$conn->close();
 ?>

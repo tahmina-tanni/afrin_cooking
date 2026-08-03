@@ -1,18 +1,17 @@
 <?php
 // api/delete_recipe.php - Delete recipe API
-require_once '../config/database.php';
+require_once '../config/Database.php';
 require_once '../utils/functions.php';
+require_once '../utils/ResponseFactory.php';
 
 // Only allow POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    echo json_encode(['success' => false, 'message' => 'Method not allowed']);
-    exit;
+    ResponseFactory::error('Method not allowed', 405);
 }
 
 // Check if user is logged in
 if (!isLoggedIn()) {
-    echo json_encode(['success' => false, 'message' => 'Please login to delete recipes']);
-    exit;
+    ResponseFactory::error('Please login to delete recipes', 401);
 }
 
 // Get the POST data
@@ -22,11 +21,10 @@ $userId = $_SESSION['user_id'];
 
 // Validate data
 if ($recipeId <= 0) {
-    echo json_encode(['success' => false, 'message' => 'Invalid recipe ID']);
-    exit;
+    ResponseFactory::error('Invalid recipe ID');
 }
 
-$conn = connectDB();
+$conn = Database::getInstance();
 
 // Check if the user is the author or an admin
 $stmt = $conn->prepare("SELECT user_id FROM recipes WHERE id = ?");
@@ -35,20 +33,18 @@ $stmt->execute();
 $result = $stmt->get_result();
 
 if ($result->num_rows === 0) {
-    echo json_encode(['success' => false, 'message' => 'Recipe not found']);
     $stmt->close();
     $conn->close();
-    exit;
+    ResponseFactory::error('Recipe not found', 404);
 }
 
 $recipe = $result->fetch_assoc();
 
 // Check if the current user is the recipe author or an admin
 if ($recipe['user_id'] != $userId && !isAdmin()) {
-    echo json_encode(['success' => false, 'message' => 'You do not have permission to delete this recipe']);
     $stmt->close();
     $conn->close();
-    exit;
+    ResponseFactory::error('You do not have permission to delete this recipe', 403);
 }
 
 // First delete reviews associated with the recipe
@@ -77,14 +73,18 @@ if ($deleteRecipeStmt->execute()) {
         }
     }
     
-    echo json_encode(['success' => true, 'message' => 'Recipe deleted successfully']);
+    $stmt->close();
+    $deleteRecipeStmt->close();
+    $conn->close();
+    
+    ResponseFactory::success(['message' => 'Recipe deleted successfully']);
 } else {
-    echo json_encode(['success' => false, 'message' => 'Failed to delete recipe']);
+    $stmt->close();
+    $deleteRecipeStmt->close();
+    $conn->close();
+    
+    ResponseFactory::error('Failed to delete recipe');
 }
-
-$stmt->close();
-$deleteRecipeStmt->close();
-$conn->close();
 
 // Helper function to check if user is admin
 function isAdmin() {
