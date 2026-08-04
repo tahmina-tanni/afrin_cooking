@@ -59,7 +59,7 @@ class Database {
         $conn->query("
             CREATE TABLE IF NOT EXISTS categories (
                 id INT AUTO_INCREMENT PRIMARY KEY,
-                name VARCHAR(50) NOT NULL,
+                name VARCHAR(50) NOT NULL UNIQUE,
                 image VARCHAR(255),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             ) ENGINE=InnoDB;
