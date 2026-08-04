@@ -2,6 +2,7 @@
 require_once '../config/Database.php';
 require_once '../utils/functions.php';
 require_once '../utils/ResponseFactory.php';
+require_once '../utils/SortStrategy.php';
 
 $method = $_SERVER['REQUEST_METHOD'];
 
@@ -28,11 +29,11 @@ function getRecipes() {
     $conn = Database::getInstance();
 
     $featured = isset($_GET['featured']) ? (int)$_GET['featured'] : 0;
-    $popular = isset($_GET['popular']) ? (int)$_GET['popular'] : 0;
+    $sortType = isset($_GET['sort']) ? $_GET['sort'] : 'latest';
     $category_id = isset($_GET['category']) ? (int)$_GET['category'] : 0;
     $search = isset($_GET['q']) ? $_GET['q'] : '';
     $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 12;
-    $page = isset($_GET['page']) ? (int)$page = $_GET['page'] : 1;
+    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
     $offset = ($page - 1) * $limit;
 
     // FIXED QUERY (author removed)
@@ -57,12 +58,7 @@ function getRecipes() {
         $query .= " AND (r.title LIKE '%$search%' OR r.description LIKE '%$search%')";
     }
 
-    if ($popular) {
-        $query .= " ORDER BY rating DESC, reviews DESC";
-    } else {
-        $query .= " ORDER BY r.created_at DESC";
-    }
-
+    $query .= SortStrategy::getOrderClause($sortType);
     $query .= " LIMIT $offset, $limit";
 
     $result = $conn->query($query);
@@ -74,8 +70,6 @@ function getRecipes() {
             $recipes[] = $row;
         }
     }
-
-    $conn->close();
 
     ResponseFactory::success(['recipes' => $recipes]);
 }
@@ -125,12 +119,10 @@ function addRecipe() {
 
     if ($stmt->execute()) {
         $stmt->close();
-        $conn->close();
         ResponseFactory::success(['message' => 'Recipe added successfully']);
     } else {
         $error_msg = $conn->error;
         $stmt->close();
-        $conn->close();
         ResponseFactory::error($error_msg);
     }
 }
