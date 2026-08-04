@@ -43,14 +43,7 @@ function initMainEventListeners() {
             e.preventDefault();
             const email = newsletterForm.querySelector('input[type="email"]').value;
             
-            fetch('api/newsletter.php', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email }),
-            })
-            .then(response => response.json())
+            apiClient.subscribeNewsletter(email)
             .then(data => {
                 if (data.success) {
                     showToast('Thanks for subscribing!');
@@ -69,7 +62,6 @@ function initMainEventListeners() {
 
 // Load all recipes to display on page
 // Update loadAllRecipes to reset any active filters when called
-
 function loadAllRecipes() {
     const recentContainer = document.getElementById('recent-recipes');
     if (!recentContainer) return;
@@ -77,9 +69,8 @@ function loadAllRecipes() {
     // Show loading state
     recentContainer.innerHTML = '<div class="col-span-full text-center py-8"><p class="text-gray-500">Loading recipes...</p></div>';
     
-    // Fetch recipes from server
-    fetch('api/recipes.php')
-        .then(response => response.json())
+    // Fetch recipes from server using apiClient
+    apiClient.getRecipes()
         .then(data => {
             if (data.success && data.recipes && data.recipes.length > 0) {
                 renderRecipes(data.recipes, 'recent-recipes', true);
@@ -123,19 +114,8 @@ function loadRecipes(containerId = 'recipe-container', options = {}) {
     // Show loading state
     container.innerHTML = '<div class="col-span-full text-center py-8"><p class="text-gray-500">Loading recipes...</p></div>';
     
-    // Build query string
-    const params = new URLSearchParams();
-    
-    if (options.featured) params.append('featured', options.featured);
-    if (options.popular) params.append('popular', options.popular);
-    if (options.category) params.append('category', options.category);
-    if (options.search) params.append('q', options.search);
-    if (options.page) params.append('page', options.page);
-    if (options.limit) params.append('limit', options.limit);
-    
-    // Fetch recipes from the server
-    return fetch(`api/recipes.php?${params.toString()}`)
-        .then(response => response.json())
+    // Fetch recipes from the server using apiClient
+    return apiClient.getRecipes(options)
         .then(data => {
             if (data.success && data.recipes && data.recipes.length > 0) {
                 // Show recipes
@@ -159,8 +139,6 @@ function loadRecipes(containerId = 'recipe-container', options = {}) {
             return false;
         });
 }
-
-
 
 
 
@@ -374,8 +352,7 @@ function loadRecipesByCategory(categoryId) {
     recentContainer.innerHTML = '<div class="col-span-full text-center py-8"><p class="text-gray-500">Loading recipes...</p></div>';
     
     // Fetch recipes from server with category filter
-    fetch(`api/recipes.php?category=${categoryId}`)
-        .then(response => response.json())
+    apiClient.getRecipes({category: categoryId})
         .then(data => {
             if (data.success && data.recipes && data.recipes.length > 0) {
                 renderRecipes(data.recipes, 'recent-recipes', true);
@@ -519,8 +496,7 @@ function renderInteractiveStars(rating, recipeId) {
 // View Recipe Details
 function viewRecipeDetails(recipeId) {
     // Fetch the recipe details
-    fetch(`api/recipe_detail.php?id=${recipeId}`)
-        .then(response => response.json())
+    apiClient.getRecipeDetail(recipeId)
         .then(data => {
             if (data.success) {
                 displayRecipeModal(data.recipe);
@@ -858,9 +834,8 @@ function loadFeaturedRecipes() {
     // Show loading state
     featuredContainer.innerHTML = '<div class="col-span-full text-center py-8"><p class="text-gray-500">Loading featured recipes...</p></div>';
     
-    // Fetch featured recipes from server
-    fetch('api/recipes.php?featured=1')
-        .then(response => response.json())
+    // Fetch featured recipes from server using apiClient
+    apiClient.getRecipes({featured: 1})
         .then(data => {
             if (data.success && data.recipes && data.recipes.length > 0) {
                 renderRecipes(data.recipes, 'featured-recipes', true);
@@ -880,19 +855,11 @@ function loadFeaturedRecipes() {
 
 
 
-
 // Add new function to mark a recipe as featured
 
 // Feature a recipe
 function featureRecipe(recipeId) {
-    return fetch('api/feature_recipe.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ recipe_id: recipeId })
-    })
-    .then(response => response.json())
+    return apiClient.featureRecipe(recipeId)
     .then(data => {
         if (data.success) {
             showToast('Recipe has been featured!');
@@ -915,8 +882,7 @@ function featureRecipe(recipeId) {
 
 // Load categories
 function loadCategories() {
-    fetch('api/categories.php')
-        .then(response => response.json())
+    apiClient.getCategories()
         .then(data => {
             if (data.success && data.categories && data.categories.length > 0) {
                 renderCategories(data.categories);
@@ -985,14 +951,7 @@ function rateRecipe(recipeId, rating) {
         return;
     }
 
-    fetch('api/rate_recipe.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ recipe_id: recipeId, rating: rating })
-    })
-    .then(response => response.json())
+    apiClient.rateRecipe(recipeId, rating)
     .then(data => {
         if (data.success) {
             showToast('Thank you for your rating!');
@@ -1020,14 +979,7 @@ function rateRecipe(recipeId, rating) {
 
 // Delete a recipe
 function deleteRecipe(recipeId) {
-    return fetch('api/delete_recipe.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ recipe_id: recipeId })
-    })
-    .then(response => response.json())
+    return apiClient.deleteRecipe(recipeId)
     .then(data => {
         if (data.success) {
             showToast('Recipe deleted successfully');
@@ -1058,16 +1010,10 @@ function initAuth() {
         loginForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
-            const formData = new FormData();
-            formData.append('action', 'login');
-            formData.append('email', document.getElementById('email').value);
-            formData.append('password', document.getElementById('password').value);
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
             
-            fetch('api/auth.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
+            apiClient.loginUser(email, password)
             .then(data => {
                 if (data.success) {
                     showToast(data.message);
@@ -1099,18 +1045,10 @@ function initAuth() {
                 return;
             }
             
-            const formData = new FormData();
-            formData.append('action', 'register');
-            formData.append('name', document.getElementById('name').value);
-            formData.append('email', document.getElementById('reg-email').value);
-            formData.append('password', password);
-            formData.append('confirm_password', confirmPassword);
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('reg-email').value;
             
-            fetch('api/auth.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
+            apiClient.registerUser(name, email, password, confirmPassword)
             .then(data => {
                 if (data.success) {
                     showToast(data.message);
@@ -1130,8 +1068,7 @@ function initAuth() {
 
 // Check login status
 function checkLoginStatus() {
-    fetch('api/check_login.php')
-        .then(response => response.json())
+    apiClient.checkLoginStatus()
         .then(data => {
             if (data.loggedIn) {
                 window.currentUserId = data.userId;
@@ -1200,15 +1137,7 @@ function updateUIForLoginState() {
 function logoutUser(e) {
     if (e) e.preventDefault();
     
-    // Create FormData instead of JSON
-    const formData = new FormData();
-    formData.append('action', 'logout');
-    
-    fetch('api/auth.php', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
+    apiClient.logoutUser()
     .then(data => {
         if (data.success) {
             showToast('Logged out successfully');
@@ -1554,11 +1483,7 @@ function initRecipeForm() {
             }
             
             // Submit to server
-            fetch('api/recipes.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
+            apiClient.addRecipe(formData)
             .then(data => {
                 if (data.success) {
                     // Show success toast

@@ -279,7 +279,7 @@
                 <h3 class="text-2xl font-bold text-gray-800">Share Your Recipe</h3>
                 <p class="text-gray-600">Fill out the form below to share your culinary creation</p>
             </div>
-            <form enctype="multipart/form-data"></form>
+            <form enctype="multipart/form-data">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
                         <label class="block text-gray-700 text-sm font-semibold mb-2" for="recipe-title">Recipe Title</label>
@@ -309,7 +309,7 @@
                         <div class="ingredient-row flex mb-2">
                             <input class="w-1/4 mr-2 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400" type="text" placeholder="Amount">
                             <input class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400" type="text" placeholder="Ingredient">
-                            <button type="button" class="ml-2  text-white rounded-lg px-3 py-2 remove-ingredient">
+                            <button type="button" class="ml-2 text-white rounded-lg px-3 py-2 remove-ingredient">
                                 <i class="fas fa-minus"></i>
                             </button>
                         </div>
@@ -358,10 +358,7 @@
     <div id="toast" class="fixed bottom-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg hidden transition-opacity duration-300 opacity-0">
         <span id="toast-message">Recipe submitted successfully!</span>
     </div>
-
-    
-    <script src="assets/js/ApiClient.js"></script>
+<script src="assets/js/ApiClient.js"></script>
     <script src="app.js"></script>
-
 </body>
 </html>
