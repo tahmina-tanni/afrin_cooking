@@ -36,7 +36,6 @@ function getRecipes() {
     $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
     $offset = ($page - 1) * $limit;
 
-    // FIXED QUERY (author removed)
     $query = "SELECT r.id, r.title, r.description, r.image, r.created_at,
               c.name as category,
               (SELECT COUNT(*) FROM reviews WHERE recipe_id = r.id) as reviews,
